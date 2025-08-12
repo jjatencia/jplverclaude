@@ -1,0 +1,514 @@
+// Animación de caída si la ficha cayó
+         if (animateChanges && cell.fallFrom !== undefined) {
+           const distance = (cell.fallFrom - y) * 100;
+           tile.style.setProperty('--fall-distance', `${distance}px`);
+           tile.style.setProperty('--fall-duration', `${0.3 + (cell.fallFrom - y) * 0.05}s`);
+           tile.style.setProperty('--fall-delay', `${x * 0.02}s`);
+           tile.classList.add('falling');
+           
+           // Limpiar después de la animación
+           setTimeout(() => {
+             tile.classList.remove('falling');
+             tile.classList.add('bounce-land');
+             setTimeout(() => tile.classList.remove('bounce-land'), 400);
+           }, 300 + (cell.fallFrom - y) * 50 + x * 20);
+           
+           delete cell.fallFrom;
+         }
+         
+         // Animación para fichas nuevas (las que aparecen desde arriba)
+         if (animateChanges && cell.isNew) {
+           tile.style.setProperty('--drop-duration', `${0.4 + y * 0.03}s`);
+           tile.style.setProperty('--drop-delay', `${(x * 0.03) + 0.1}s`);
+           tile.classList.add('new-tile');
+           
+           setTimeout(() => {
+             tile.classList.remove('new-tile');
+           }, 500 + y * 30 + x * 30);
+           
+           delete cell.isNew;
+         }
+       }
+       
+       fragment.appendChild(tile);
+     }
+   }
+   
+   boardEl.appendChild(fragment);
+ }
+
+ // Click en ficha
+ boardEl.addEventListener('click', (e) => {
+   if (state.animating) return;
+   
+   const tile = e.target.closest('.tile');
+   if (!tile) return;
+   
+   const x = parseInt(tile.dataset.x);
+   const y = parseInt(tile.dataset.y);
+   const cell = state.grid[y]?.[x];
+   
+   if (!cell) return;
+   
+   if (cell.kind === 'ball') {
+     handleBallClick(x, y, cell.color);
+   } else {
+     handleNormalClick(x, y, cell.color);
+   }
+ });
+
+ function handleNormalClick(x, y, color) {
+   const group = findGroup(x, y, color);
+   
+   if (group.length < 2) {
+     // Animar rebote
+     const tile = boardEl.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+     if (tile) {
+       tile.style.animation = 'bounce 0.3s';
+       setTimeout(() => tile.style.animation = '', 300);
+     }
+     return;
+   }
+   
+   state.animating = true;
+   spendMove();
+   
+   // Crear pelota si el grupo es >= 5
+   if (group.length >= 5) {
+     // Animar explosión de todas excepto la central
+     animateExplosion(group.filter(([gx, gy]) => !(gx === x && gy === y)));
+     
+     setTimeout(() => {
+       // Eliminar todas excepto la central
+       for (const [gx, gy] of group) {
+         if (!(gx === x && gy === y)) {
+           state.grid[gy][gx] = null;
+         }
+       }
+       
+       // Convertir la central en pelota
+       state.grid[y][x] = { kind: 'ball', color: color };
+       
+       soundSystem.playSpecial();
+       voiceSystem.speak('¡Pelota mágica!');
+       showToast('¡Pelota mágica! ✨');
+       
+       applyGravity();
+       fillEmpty();
+       render(true);
+       
+       setTimeout(() => {
+         state.animating = false;
+         checkGameState();
+       }, 600);
+     }, 300);
+     
+     addScore(100);
+     return;
+   }
+   
+   // Grupo normal
+   animateExplosion(group);
+   
+   setTimeout(() => {
+     for (const [gx, gy] of group) {
+       state.grid[gy][gx] = null;
+       spawnParticles(gx, gy, color);
+     }
+     
+     soundSystem.playPop();
+     
+     if (group.length >= 3) {
+       voiceSystem.speak('¡Bien hecho!');
+     }
+     
+     applyGravity();
+     fillEmpty();
+     render(true);
+     
+     setTimeout(() => {
+       state.animating = false;
+       checkGameState();
+     }, 600);
+   }, 300);
+   
+   addScore(group.length * 10);
+ }
+
+ function handleBallClick(x, y, color) {
+   state.animating = true;
+   spendMove();
+   
+   // Verificar si hay pelotas adyacentes
+   const ballCluster = findBallCluster(x, y);
+   
+   if (ballCluster.length >= 2) {
+     // Limpieza total
+     animateScreenFlash();
+     voiceSystem.speak('¡Explosión total!');
+     
+     setTimeout(() => {
+       // Eliminar todas las fichas normales
+       for (let py = 0; py < ROWS; py++) {
+         for (let px = 0; px < COLS; px++) {
+           if (state.grid[py][px]) {
+             if (state.grid[py][px].kind === 'normal') {
+               spawnParticles(px, py, state.grid[py][px].color);
+               state.grid[py][px] = null;
+             } else if (ballCluster.some(([bx, by]) => bx === px && by === py)) {
+               state.grid[py][px] = null;
+             }
+           }
+         }
+       }
+       
+       soundSystem.playSpecial();
+       applyGravity();
+       fillEmpty();
+       render(true);
+       
+       setTimeout(() => {
+         state.animating = false;
+         checkGameState();
+       }, 600);
+     }, 400);
+     
+     addScore(500);
+   } else {
+     // Eliminar todas las fichas del color de la pelota
+     const targets = [];
+     for (let py = 0; py < ROWS; py++) {
+       for (let px = 0; px < COLS; px++) {
+         const cell = state.grid[py][px];
+         if (cell && cell.kind === 'normal' && cell.color === color) {
+           targets.push([px, py]);
+         }
+       }
+     }
+     
+     animateColorExplosion(targets, color);
+     
+     setTimeout(() => {
+       state.grid[y][x] = null; // Eliminar la pelota
+       for (const [tx, ty] of targets) {
+         state.grid[ty][tx] = null;
+         spawnParticles(tx, ty, color);
+       }
+       
+       soundSystem.playSuccess();
+       voiceSystem.speak('¡Explosión de color!');
+       
+       applyGravity();
+       fillEmpty();
+       render(true);
+       
+       setTimeout(() => {
+         state.animating = false;
+         checkGameState();
+       }, 600);
+     }, 400);
+     
+     addScore(targets.length * 20);
+   }
+ }
+
+ // FUNCIÓN CRÍTICA: Aplicar gravedad con seguimiento de caídas
+ function applyGravity() {
+   const changes = [];
+   
+   for (let x = 0; x < COLS; x++) {
+     const column = [];
+     
+     // Recoger fichas no nulas de la columna
+     for (let y = 0; y < ROWS; y++) {
+       if (state.grid[y][x]) {
+         column.push({
+           cell: state.grid[y][x],
+           originalY: y
+         });
+       }
+     }
+     
+     // Limpiar columna
+     for (let y = 0; y < ROWS; y++) {
+       state.grid[y][x] = null;
+     }
+     
+     // Colocar fichas desde abajo con información de caída
+     let writePos = ROWS - 1;
+     for (let i = column.length - 1; i >= 0; i--) {
+       const item = column[i];
+       state.grid[writePos][x] = item.cell;
+       
+       // Marcar desde dónde cayó si se movió
+       if (writePos > item.originalY) {
+         state.grid[writePos][x].fallFrom = item.originalY;
+       }
+       
+       writePos--;
+     }
+   }
+ }
+
+ // FUNCIÓN CRÍTICA: Rellenar espacios vacíos con fichas nuevas
+ function fillEmpty() {
+   for (let y = 0; y < ROWS; y++) {
+     for (let x = 0; x < COLS; x++) {
+       if (!state.grid[y][x]) {
+         state.grid[y][x] = {
+           kind: 'normal',
+           color: Math.floor(Math.random() * 5),
+           isNew: true // Marcar como nueva para animar
+         };
+       }
+     }
+   }
+ }
+
+ // Encontrar grupo de fichas conectadas
+ function findGroup(startX, startY, color) {
+   const visited = new Set();
+   const stack = [[startX, startY]];
+   const group = [];
+   
+   while (stack.length > 0) {
+     const [x, y] = stack.pop();
+     const key = `${x},${y}`;
+     
+     if (visited.has(key)) continue;
+     visited.add(key);
+     
+     const cell = state.grid[y]?.[x];
+     if (!cell || cell.kind !== 'normal' || cell.color !== color) continue;
+     
+     group.push([x, y]);
+     
+     // Agregar vecinos
+     if (x > 0) stack.push([x - 1, y]);
+     if (x < COLS - 1) stack.push([x + 1, y]);
+     if (y > 0) stack.push([x, y - 1]);
+     if (y < ROWS - 1) stack.push([x, y + 1]);
+   }
+   
+   return group;
+ }
+
+ // Encontrar cluster de pelotas
+ function findBallCluster(startX, startY) {
+   const visited = new Set();
+   const stack = [[startX, startY]];
+   const cluster = [];
+   
+   while (stack.length > 0) {
+     const [x, y] = stack.pop();
+     const key = `${x},${y}`;
+     
+     if (visited.has(key)) continue;
+     visited.add(key);
+     
+     const cell = state.grid[y]?.[x];
+     if (!cell || cell.kind !== 'ball') continue;
+     
+     cluster.push([x, y]);
+     
+     // Agregar vecinos
+     if (x > 0) stack.push([x - 1, y]);
+     if (x < COLS - 1) stack.push([x + 1, y]);
+     if (y > 0) stack.push([x, y - 1]);
+     if (y < ROWS - 1) stack.push([x, y + 1]);
+   }
+   
+   return cluster;
+ }
+
+ // Animaciones
+ function animateExplosion(cells) {
+   for (const [x, y] of cells) {
+     const tile = boardEl.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+     if (tile) {
+       tile.classList.add('exploding');
+     }
+   }
+ }
+
+ function animateColorExplosion(cells, color) {
+   const colors = ['#ff4d4f', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
+   const colorVar = colors[color];
+   
+   for (const [x, y] of cells) {
+     const tile = boardEl.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+     if (tile) {
+       tile.style.boxShadow = `0 0 20px ${colorVar}`;
+       tile.classList.add('exploding');
+     }
+   }
+ }
+
+ function animateScreenFlash() {
+   document.body.style.animation = 'flash 0.3s';
+   setTimeout(() => document.body.style.animation = '', 300);
+ }
+
+ @keyframes flash {
+   0%, 100% { filter: brightness(1); }
+   50% { filter: brightness(1.5); }
+ }
+
+ // Partículas
+ function spawnParticles(x, y, color) {
+   const tile = boardEl.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+   if (!tile) return;
+   
+   const rect = tile.getBoundingClientRect();
+   const colors = ['#ff4d4f', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
+   
+   for (let i = 0; i < 6; i++) {
+     const particle = document.createElement('div');
+     particle.className = 'piece';
+     particle.style.left = rect.left + rect.width / 2 + 'px';
+     particle.style.top = rect.top + rect.height / 2 + 'px';
+     particle.style.background = colors[color];
+     
+     const angle = (Math.PI * 2 * i) / 6;
+     const distance = 50 + Math.random() * 50;
+     particle.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
+     particle.style.setProperty('--dy', Math.sin(angle) * distance + 'px');
+     
+     document.body.appendChild(particle);
+     setTimeout(() => particle.remove(), 800);
+   }
+ }
+
+ // UI
+ function showToast(message) {
+   const toast = document.createElement('div');
+   toast.className = 'toast';
+   toast.textContent = message;
+   document.body.appendChild(toast);
+   setTimeout(() => toast.remove(), 1500);
+ }
+
+ function addScore(points) {
+   state.score += points;
+   updateUI();
+   showToast(`+${points} ⭐`);
+ }
+
+ function spendMove() {
+   if (state.movesLeft > 0) {
+     state.movesLeft--;
+     updateUI();
+   }
+ }
+
+ function updateUI() {
+   scoreEl.textContent = state.score;
+   movesEl.textContent = state.movesLeft;
+   targetEl.textContent = state.target;
+ }
+
+ function checkGameState() {
+   if (state.score >= state.target) {
+     showWin();
+   } else if (state.movesLeft === 0) {
+     showGameOver();
+   }
+ }
+
+ function showWin() {
+   soundSystem.playSpecial();
+   voiceSystem.speak('¡Ganaste! ¡Eres increíble!');
+   
+   const modal = document.createElement('div');
+   modal.className = 'modal';
+   modal.innerHTML = `
+     <div class="modal-card">
+       <div class="trophy">🏆</div>
+       <h2>¡VICTORIA!</h2>
+       <p>¡Conseguiste ${state.score} puntos!</p>
+       <div style="margin-top: 16px; display: flex; gap: 10px;">
+         <button onclick="location.reload()" class="primary" style="flex: 1; padding: 10px;">
+           🎮 Jugar de nuevo
+         </button>
+       </div>
+     </div>
+   `;
+   document.body.appendChild(modal);
+ }
+
+ function showGameOver() {
+   const modal = document.createElement('div');
+   modal.className = 'modal';
+   modal.innerHTML = `
+     <div class="modal-card">
+       <div class="trophy">😢</div>
+       <h2>¡Se acabó!</h2>
+       <p>Conseguiste ${state.score} puntos</p>
+       <div style="margin-top: 16px; display: flex; gap: 10px;">
+         <button onclick="location.reload()" class="primary" style="flex: 1; padding: 10px;">
+           🎮 Intentar de nuevo
+         </button>
+       </div>
+     </div>
+   `;
+   document.body.appendChild(modal);
+ }
+
+ // Inicialización
+ function init() {
+   state.level = levelSel.value;
+   state.theme = themeSel.value;
+   currentTheme = EMOJI_THEMES[state.theme];
+   
+   const config = LEVELS[state.level];
+   state.target = config.target;
+   state.movesLeft = config.moves;
+   state.score = 0;
+   state.animating = false;
+   
+   // Generar tablero
+   state.grid = [];
+   for (let y = 0; y < ROWS; y++) {
+     state.grid[y] = [];
+     for (let x = 0; x < COLS; x++) {
+       state.grid[y][x] = {
+         kind: 'normal',
+         color: Math.floor(Math.random() * 5)
+       };
+     }
+   }
+   
+   render(false);
+   updateUI();
+ }
+
+ // Event listeners
+ newBtn.addEventListener('click', () => {
+   init();
+   showToast('¡Nuevo juego! 🎮');
+ });
+
+ levelSel.addEventListener('change', init);
+ themeSel.addEventListener('change', () => {
+   currentTheme = EMOJI_THEMES[themeSel.value];
+   render(false);
+ });
+
+ soundBtn.addEventListener('click', () => {
+   soundSystem.enabled = !soundSystem.enabled;
+   soundBtn.textContent = soundSystem.enabled ? '🔊' : '🔇';
+ });
+
+ voiceBtn.addEventListener('click', () => {
+   voiceSystem.enabled = !voiceSystem.enabled;
+   voiceBtn.textContent = voiceSystem.enabled ? '🗣️' : '🔕';
+ });
+
+ // Iniciar juego
+ init();
+ showToast('¡Bienvenido! 🌈');
+
+})();
+</script>
+</body>
+</html>
