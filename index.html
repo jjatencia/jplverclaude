@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Nombre del Juego">
-
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -180,13 +176,30 @@
   .c3 { background: linear-gradient(135deg, #ffd93d, #f59e0b); }
   .c4 { background: linear-gradient(135deg, #c77dff, #a855f7); }
 
-  /* Pelota especial con glow del mismo color */
+  /* PELOTA ESPECIAL MEJORADA - Como balón de fútbol girando */
   .ball {
-    animation: pulse 1s ease-in-out infinite;
+    background: conic-gradient(
+      from 0deg,
+      currentColor 0deg 30deg,
+      white 30deg 60deg,
+      currentColor 60deg 90deg,
+      white 90deg 120deg,
+      currentColor 120deg 150deg,
+      white 150deg 180deg,
+      currentColor 180deg 210deg,
+      white 210deg 240deg,
+      currentColor 240deg 270deg,
+      white 270deg 300deg,
+      currentColor 300deg 330deg,
+      white 330deg 360deg
+    ) !important;
+    animation: rotateBall 2s linear infinite;
     box-shadow: 
-      0 0 20px currentColor,
-      0 0 40px currentColor,
-      0 2px 4px rgba(0,0,0,0.3);
+      0 0 30px currentColor,
+      0 0 50px currentColor,
+      inset 0 0 20px rgba(0,0,0,0.3),
+      0 4px 8px rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.3);
   }
 
   .ball.c0 { color: #ff4d4f; }
@@ -195,9 +208,82 @@
   .ball.c3 { color: #f59e0b; }
   .ball.c4 { color: #a855f7; }
 
+  .ball::before {
+    content: '⚽';
+    font-size: 0.7em;
+    position: absolute;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes rotateBall {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* FLECHA ESPECIAL - Para eliminar fila/columna */
+  .arrow {
+    background: linear-gradient(135deg, #ffd700, #ffed4e) !important;
+    animation: arrowPulse 1s ease-in-out infinite;
+    box-shadow: 
+      0 0 30px #ffd700,
+      0 0 50px #ffd700,
+      0 4px 8px rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+
+  .arrow::before {
+    content: '';
+    position: absolute;
+    font-size: 0.8em;
+    animation: arrowBounce 1s ease-in-out infinite;
+  }
+
+  .arrow.horizontal::before { content: '➡️'; }
+  .arrow.vertical::before { content: '⬆️'; }
+
+  @keyframes arrowPulse {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.1); filter: brightness(1.3); }
+  }
+
+  @keyframes arrowBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* RAYOS CONECTORES */
+  .lightning {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    stroke: currentColor;
+    stroke-width: 3;
+    fill: none;
+    filter: drop-shadow(0 0 10px currentColor);
+    animation: lightningStrike 0.5s ease-out forwards;
+  }
+
+  @keyframes lightningStrike {
+    0% { 
+      opacity: 0; 
+      stroke-width: 1;
+      filter: drop-shadow(0 0 5px currentColor);
+    }
+    50% { 
+      opacity: 1; 
+      stroke-width: 4;
+      filter: drop-shadow(0 0 20px currentColor);
+    }
+    100% { 
+      opacity: 0; 
+      stroke-width: 1;
+      filter: drop-shadow(0 0 30px currentColor);
+    }
   }
 
   /* Animación de caída */
@@ -250,6 +336,17 @@
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
+  }
+
+  /* Eliminación de línea */
+  .line-clear {
+    animation: lineClear 0.5s ease-out forwards;
+  }
+
+  @keyframes lineClear {
+    0% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.2); filter: brightness(2); }
+    100% { transform: scale(0) rotate(180deg); opacity: 0; }
   }
 
   /* Toast */
@@ -323,7 +420,7 @@
     cursor: pointer;
   }
 
-  /* Footer con contador de partidas */
+  /* Footer con contador de vidas */
   footer {
     text-align: center;
     font-size: 11px;
@@ -333,11 +430,17 @@
     margin-top: 8px;
   }
 
-  .games-counter {
+  .lives-counter {
     font-weight: 700;
-    color: #ffd93d;
+    color: #ff4d4f;
     font-size: 13px;
     margin-bottom: 4px;
+  }
+
+  .timer-info {
+    color: #ffd93d;
+    font-weight: 600;
+    font-size: 12px;
   }
 
   .hint {
@@ -380,13 +483,6 @@
     .controls { gap: 3px; }
     .board { gap: 4px; padding: 8px; }
   }
-
-  /* iPhone SE */
-  @media screen and (max-width: 375px) and (max-height: 667px) {
-    .title { font-size: 12px; }
-    .stats { font-size: 10px; }
-    .controls select, .controls button { font-size: 10px; padding: 5px 6px; }
-  }
 </style>
 </head>
 <body>
@@ -424,8 +520,9 @@
   </div>
 
   <footer>
-    <div class="games-counter">🎮 Partidas restantes: <span id="gamesLeft">5</span> de 5</div>
-    <div class="hint">✨ Toca 2+ iguales • 5+ = pelota mágica</div>
+    <div class="lives-counter">❤️ Vidas: <span id="livesLeft">5</span></div>
+    <div class="timer-info" id="timerInfo" style="display: none;"></div>
+    <div class="hint">✨ 2+ grupo • 4+ flecha • 5+ balón</div>
   </footer>
 
 <script>
@@ -435,7 +532,8 @@
   // Configuración
   const COLS = 6;
   const ROWS = 8;
-  const MAX_GAMES = 5;
+  const MAX_LIVES = 5;
+  const COOLDOWN_MINUTES = 25; // 25 minutos de espera
 
   const EMOJI_THEMES = {
     frutas: [
@@ -505,13 +603,18 @@
         setTimeout(() => this.play(f, 0.15), i * 50);
       });
     }
+    playSpecial() {
+      [392, 523, 659, 784, 659, 523].forEach((f, i) => {
+        setTimeout(() => this.play(f, 0.1), i * 40);
+      });
+    }
     playError() { this.play(200, 0.3); }
   }
 
-  // Sistema de voz CORREGIDO
+  // Sistema de voz
   class VoiceSystem {
     constructor() {
-      this.enabled = false; // Empieza desactivado
+      this.enabled = false;
       this.synth = window.speechSynthesis;
     }
 
@@ -520,22 +623,17 @@
       if (!this.synth) return;
       
       try {
-        // Cancelar voces anteriores
         this.synth.cancel();
-        
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'es-ES';
         utterance.pitch = 1.3;
         utterance.rate = 0.9;
         utterance.volume = 0.7;
         
-        // Esperar un momento para que el sintetizador esté listo
         setTimeout(() => {
           this.synth.speak(utterance);
         }, 100);
-      } catch (e) {
-        console.warn('Error en voz:', e);
-      }
+      } catch (e) {}
     }
 
     toggle() {
@@ -556,32 +654,46 @@
     level: 'normal',
     theme: 'frutas',
     animating: false,
-    gamesLeft: MAX_GAMES
+    livesLeft: MAX_LIVES,
+    lockedUntil: null
   };
 
-  // Cargar partidas restantes del localStorage
-  const savedGames = localStorage.getItem('gamesLeft');
-  if (savedGames !== null) {
-    state.gamesLeft = parseInt(savedGames);
+  // Cargar estado guardado
+  function loadState() {
+    const saved = localStorage.getItem('gameState');
+    if (saved) {
+      const data = JSON.parse(saved);
+      state.livesLeft = data.livesLeft || MAX_LIVES;
+      state.lockedUntil = data.lockedUntil || null;
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem('gameState', JSON.stringify({
+      livesLeft: state.livesLeft,
+      lockedUntil: state.lockedUntil
+    }));
   }
 
   let currentTheme = EMOJI_THEMES.frutas;
   const soundSystem = new SoundSystem();
   const voiceSystem = new VoiceSystem();
+  let timerInterval = null;
 
   // Elementos DOM
   const boardEl = document.getElementById('board');
   const scoreEl = document.getElementById('score');
   const movesEl = document.getElementById('moves');
   const targetEl = document.getElementById('target');
-  const gamesLeftEl = document.getElementById('gamesLeft');
+  const livesLeftEl = document.getElementById('livesLeft');
+  const timerInfoEl = document.getElementById('timerInfo');
   const newBtn = document.getElementById('newBtn');
   const levelSel = document.getElementById('levelSel');
   const themeSel = document.getElementById('themeSel');
   const soundBtn = document.getElementById('soundBtn');
   const voiceBtn = document.getElementById('voiceBtn');
 
-  // Renderizado CORREGIDO
+  // Renderizado
   function render(animateChanges = false) {
     boardEl.innerHTML = '';
     const fragment = document.createDocumentFragment();
@@ -597,13 +709,12 @@
         if (!cell) {
           tile.style.visibility = 'hidden';
         } else {
-          // Usar el color correcto
           tile.classList.add(`c${cell.color}`);
           
           if (cell.kind === 'ball') {
             tile.classList.add('ball');
-            // Mostrar emoji especial para pelota
-            tile.textContent = '⚡';
+          } else if (cell.kind === 'arrow') {
+            tile.classList.add('arrow', cell.direction);
           } else {
             tile.textContent = currentTheme[cell.color].emoji;
           }
@@ -632,9 +743,59 @@
     boardEl.appendChild(fragment);
   }
 
+  // NUEVO: Dibujar rayos conectores
+  function drawLightning(fromX, fromY, targets, color) {
+    const fromTile = boardEl.querySelector(`[data-x="${fromX}"][data-y="${fromY}"]`);
+    if (!fromTile) return;
+    
+    const fromRect = fromTile.getBoundingClientRect();
+    const fromCenterX = fromRect.left + fromRect.width / 2;
+    const fromCenterY = fromRect.top + fromRect.height / 2;
+    
+    const colors = ['#ff4d4f', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
+    const strokeColor = colors[color];
+    
+    targets.forEach(([toX, toY]) => {
+      const toTile = boardEl.querySelector(`[data-x="${toX}"][data-y="${toY}"]`);
+      if (!toTile) return;
+      
+      const toRect = toTile.getBoundingClientRect();
+      const toCenterX = toRect.left + toRect.width / 2;
+      const toCenterY = toRect.top + toRect.height / 2;
+      
+      // Crear SVG para el rayo
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('lightning');
+      svg.style.position = 'fixed';
+      svg.style.left = '0';
+      svg.style.top = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.color = strokeColor;
+      
+      // Crear path zigzag para el rayo
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      
+      // Calcular puntos intermedios para zigzag
+      const midX = (fromCenterX + toCenterX) / 2;
+      const midY = (fromCenterY + toCenterY) / 2;
+      const offset = 15;
+      const zigX1 = midX + (Math.random() - 0.5) * offset;
+      const zigY1 = midY + (Math.random() - 0.5) * offset;
+      
+      path.setAttribute('d', `M ${fromCenterX} ${fromCenterY} L ${zigX1} ${zigY1} L ${toCenterX} ${toCenterY}`);
+      
+      svg.appendChild(path);
+      document.body.appendChild(svg);
+      
+      setTimeout(() => svg.remove(), 500);
+    });
+  }
+
   // Click en ficha
   boardEl.addEventListener('click', (e) => {
     if (state.animating) return;
+    if (checkLocked()) return;
     
     const tile = e.target.closest('.tile');
     if (!tile) return;
@@ -647,12 +808,14 @@
     
     if (cell.kind === 'ball') {
       handleBallClick(x, y, cell.color);
+    } else if (cell.kind === 'arrow') {
+      handleArrowClick(x, y, cell.direction);
     } else {
       handleNormalClick(x, y, cell.color);
     }
   });
 
-  // Manejar click normal CORREGIDO
+  // Manejar click normal
   function handleNormalClick(x, y, color) {
     const group = findGroup(x, y, color);
     
@@ -669,12 +832,11 @@
     state.animating = true;
     spendMove();
     
-    // Crear pelota si el grupo es >= 5
+    // GRUPO DE 5+ : Crear balón
     if (group.length >= 5) {
       animateExplosion(group.filter(([gx, gy]) => !(gx === x && gy === y)));
       
       setTimeout(() => {
-        // Eliminar todas excepto la central
         for (const [gx, gy] of group) {
           if (!(gx === x && gy === y)) {
             spawnParticles(gx, gy, color);
@@ -682,226 +844,326 @@
           }
         }
         
-        // Convertir la central en pelota DEL MISMO COLOR
         state.grid[y][x] = { kind: 'ball', color: color };
         
-        soundSystem.playSuccess();
-        voiceSystem.speak('¡Pelota mágica!');
-        showToast('¡Pelota mágica! ⚡');
+        soundSystem.playSpecial();
+        voiceSystem.speak('¡Balón mágico!');
+        showToast('⚽ ¡Balón mágico!');
         
         applyGravity();
         fillEmpty();
         render(true);
         
         setTimeout(() => {
-          state.animating = false;
-          checkGameState();
-        }, 600);
-      }, 300);
-      
-      addScore(100 + group.length * 10);
-      return;
-    }
-    
-    // Grupo normal
-    animateExplosion(group);
-    
-    setTimeout(() => {
-      for (const [gx, gy] of group) {
-        spawnParticles(gx, gy, color);
-        state.grid[gy][gx] = null;
-      }
-      
-      soundSystem.playPop();
-      
-      if (group.length >= 3) {
-        voiceSystem.speak('¡Bien hecho!');
-      }
-      
-      applyGravity();
-      fillEmpty();
-      render(true);
-      
-      setTimeout(() => {
-        state.animating = false;
-        checkGameState();
-      }, 600);
-    }, 300);
-    
-    addScore(group.length * 15);
-  }
+         state.animating = false;
+         checkGameState();
+       }, 600);
+     }, 300);
+     
+     addScore(100 + group.length * 10);
+     return;
+   }
+   
+   // GRUPO DE 4: Crear flecha
+   if (group.length === 4) {
+     animateExplosion(group.filter(([gx, gy]) => !(gx === x && gy === y)));
+     
+     setTimeout(() => {
+       for (const [gx, gy] of group) {
+         if (!(gx === x && gy === y)) {
+           spawnParticles(gx, gy, color);
+           state.grid[gy][gx] = null;
+         }
+       }
+       
+       // Crear flecha con dirección aleatoria
+       const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+       state.grid[y][x] = { kind: 'arrow', direction: direction, color: color };
+       
+       soundSystem.playSuccess();
+       voiceSystem.speak('¡Flecha especial!');
+       showToast(direction === 'horizontal' ? '➡️ ¡Flecha horizontal!' : '⬆️ ¡Flecha vertical!');
+       
+       applyGravity();
+       fillEmpty();
+       render(true);
+       
+       setTimeout(() => {
+         state.animating = false;
+         checkGameState();
+       }, 600);
+     }, 300);
+     
+     addScore(80);
+     return;
+   }
+   
+   // Grupo normal (2-3)
+   animateExplosion(group);
+   
+   setTimeout(() => {
+     for (const [gx, gy] of group) {
+       spawnParticles(gx, gy, color);
+       state.grid[gy][gx] = null;
+     }
+     
+     soundSystem.playPop();
+     
+     if (group.length >= 3) {
+       voiceSystem.speak('¡Bien hecho!');
+     }
+     
+     applyGravity();
+     fillEmpty();
+     render(true);
+     
+     setTimeout(() => {
+       state.animating = false;
+       checkGameState();
+     }, 600);
+   }, 300);
+   
+   addScore(group.length * 15);
+ }
 
-  // Manejar click en pelota CORREGIDO
-  function handleBallClick(x, y, color) {
-    state.animating = true;
-    spendMove();
-    
-    const ballCluster = findBallCluster(x, y);
-    
-    if (ballCluster.length >= 2) {
-      // Limpieza total
-      voiceSystem.speak('¡Explosión total!');
-      
-      setTimeout(() => {
-        for (let py = 0; py < ROWS; py++) {
-          for (let px = 0; px < COLS; px++) {
-            if (state.grid[py][px]) {
-              if (state.grid[py][px].kind === 'normal') {
-                spawnParticles(px, py, state.grid[py][px].color);
-                state.grid[py][px] = null;
-              } else if (ballCluster.some(([bx, by]) => bx === px && by === py)) {
-                state.grid[py][px] = null;
-              }
-            }
-          }
-        }
-        
-        soundSystem.playSuccess();
-        applyGravity();
-        fillEmpty();
-        render(true);
-        
-        setTimeout(() => {
-          state.animating = false;
-          checkGameState();
-        }, 600);
-      }, 400);
-      
-      addScore(500);
-    } else {
-      // Eliminar todas las fichas DEL MISMO COLOR que la pelota
-      const targets = [];
-      for (let py = 0; py < ROWS; py++) {
-        for (let px = 0; px < COLS; px++) {
-          const cell = state.grid[py][px];
-          if (cell && cell.kind === 'normal' && cell.color === color) {
-            targets.push([px, py]);
-          }
-        }
-      }
-      
-      animateExplosion(targets);
-      
-      setTimeout(() => {
-        state.grid[y][x] = null; // Eliminar la pelota
-        for (const [tx, ty] of targets) {
-          spawnParticles(tx, ty, color);
-          state.grid[ty][tx] = null;
-        }
-        
-        soundSystem.playSuccess();
-        voiceSystem.speak('¡Explosión de color!');
-        showToast(`¡Boom! ${currentTheme[color].emoji}`);
-        
-        applyGravity();
-        fillEmpty();
-        render(true);
-        
-        setTimeout(() => {
-          state.animating = false;
-          checkGameState();
-        }, 600);
-      }, 400);
-      
-      addScore(targets.length * 25);
-    }
-  }
+ // NUEVO: Manejar click en flecha
+ function handleArrowClick(x, y, direction) {
+   state.animating = true;
+   spendMove();
+   
+   const targets = [];
+   
+   if (direction === 'horizontal') {
+     // Eliminar toda la fila
+     for (let px = 0; px < COLS; px++) {
+       if (state.grid[y][px] && state.grid[y][px].kind === 'normal') {
+         targets.push([px, y]);
+       }
+     }
+     voiceSystem.speak('¡Explosión horizontal!');
+     showToast('➡️ ¡Fila eliminada!');
+   } else {
+     // Eliminar toda la columna
+     for (let py = 0; py < ROWS; py++) {
+       if (state.grid[py][x] && state.grid[py][x].kind === 'normal') {
+         targets.push([x, py]);
+       }
+     }
+     voiceSystem.speak('¡Explosión vertical!');
+     showToast('⬆️ ¡Columna eliminada!');
+   }
+   
+   // Animar eliminación de línea
+   targets.forEach(([tx, ty]) => {
+     const tile = boardEl.querySelector(`[data-x="${tx}"][data-y="${ty}"]`);
+     if (tile) {
+       tile.classList.add('line-clear');
+     }
+   });
+   
+   setTimeout(() => {
+     // Eliminar la flecha
+     state.grid[y][x] = null;
+     
+     // Eliminar objetivos
+     for (const [tx, ty] of targets) {
+       if (state.grid[ty] && state.grid[ty][tx]) {
+         spawnParticles(tx, ty, state.grid[ty][tx].color);
+         state.grid[ty][tx] = null;
+       }
+     }
+     
+     soundSystem.playSpecial();
+     applyGravity();
+     fillEmpty();
+     render(true);
+     
+     setTimeout(() => {
+       state.animating = false;
+       checkGameState();
+     }, 600);
+   }, 500);
+   
+   addScore(targets.length * 30);
+ }
 
-  // Gravedad
-  function applyGravity() {
-    for (let x = 0; x < COLS; x++) {
-      const column = [];
-      
-      for (let y = 0; y < ROWS; y++) {
-        if (state.grid[y][x]) {
-          column.push({
-            cell: state.grid[y][x],
-            originalY: y
-          });
-        }
-      }
-      
-      for (let y = 0; y < ROWS; y++) {
-        state.grid[y][x] = null;
-      }
-      
-      let writePos = ROWS - 1;
-      for (let i = column.length - 1; i >= 0; i--) {
-        const item = column[i];
-        state.grid[writePos][x] = item.cell;
-        
-        if (writePos > item.originalY) {
-          state.grid[writePos][x].fallFrom = item.originalY;
-        }
-        
-        writePos--;
-      }
-    }
-  }
+ // Manejar click en balón CON RAYOS
+ function handleBallClick(x, y, color) {
+   state.animating = true;
+   spendMove();
+   
+   const ballCluster = findBallCluster(x, y);
+   
+   if (ballCluster.length >= 2) {
+     // Limpieza total
+     voiceSystem.speak('¡Explosión total!');
+     
+     setTimeout(() => {
+       for (let py = 0; py < ROWS; py++) {
+         for (let px = 0; px < COLS; px++) {
+           if (state.grid[py][px]) {
+             if (state.grid[py][px].kind === 'normal') {
+               spawnParticles(px, py, state.grid[py][px].color);
+               state.grid[py][px] = null;
+             } else if (ballCluster.some(([bx, by]) => bx === px && by === py)) {
+               state.grid[py][px] = null;
+             }
+           }
+         }
+       }
+       
+       soundSystem.playSpecial();
+       applyGravity();
+       fillEmpty();
+       render(true);
+       
+       setTimeout(() => {
+         state.animating = false;
+         checkGameState();
+       }, 600);
+     }, 400);
+     
+     addScore(500);
+   } else {
+     // Eliminar todas las fichas del mismo color CON RAYOS
+     const targets = [];
+     for (let py = 0; py < ROWS; py++) {
+       for (let px = 0; px < COLS; px++) {
+         const cell = state.grid[py][px];
+         if (cell && cell.kind === 'normal' && cell.color === color) {
+           targets.push([px, py]);
+         }
+       }
+     }
+     
+     // DIBUJAR RAYOS
+     drawLightning(x, y, targets, color);
+     
+     // Animar explosión con delay
+     setTimeout(() => {
+       animateExplosion(targets);
+       
+       setTimeout(() => {
+         state.grid[y][x] = null; // Eliminar el balón
+         for (const [tx, ty] of targets) {
+           spawnParticles(tx, ty, color);
+           state.grid[ty][tx] = null;
+         }
+         
+         soundSystem.playSpecial();
+         voiceSystem.speak('¡Explosión de color!');
+         showToast(`⚽ ¡${currentTheme[color].emoji} eliminados!`);
+         
+         applyGravity();
+         fillEmpty();
+         render(true);
+         
+         setTimeout(() => {
+           state.animating = false;
+           checkGameState();
+         }, 600);
+       }, 300);
+     }, 200);
+     
+     addScore(targets.length * 25);
+   }
+ }
 
-  // Rellenar vacíos
-  function fillEmpty() {
-    for (let y = 0; y < ROWS; y++) {
-      for (let x = 0; x < COLS; x++) {
-        if (!state.grid[y][x]) {
-          state.grid[y][x] = {
-            kind: 'normal',
-            color: Math.floor(Math.random() * 5),
-            isNew: true
-          };
-        }
-      }
-    }
-  }
+ // Gravedad
+ function applyGravity() {
+   for (let x = 0; x < COLS; x++) {
+     const column = [];
+     
+     for (let y = 0; y < ROWS; y++) {
+       if (state.grid[y][x]) {
+         column.push({
+           cell: state.grid[y][x],
+           originalY: y
+         });
+       }
+     }
+     
+     for (let y = 0; y < ROWS; y++) {
+       state.grid[y][x] = null;
+     }
+     
+     let writePos = ROWS - 1;
+     for (let i = column.length - 1; i >= 0; i--) {
+       const item = column[i];
+       state.grid[writePos][x] = item.cell;
+       
+       if (writePos > item.originalY) {
+         state.grid[writePos][x].fallFrom = item.originalY;
+       }
+       
+       writePos--;
+     }
+   }
+ }
 
-  // Buscar grupo
-  function findGroup(startX, startY, color) {
-    const visited = new Set();
-    const stack = [[startX, startY]];
-    const group = [];
-    
-    while (stack.length > 0) {
-      const [x, y] = stack.pop();
-      const key = `${x},${y}`;
-      
-      if (visited.has(key)) continue;
-      visited.add(key);
-      
-      const cell = state.grid[y]?.[x];
-      if (!cell || cell.kind !== 'normal' || cell.color !== color) continue;
-      
-      group.push([x, y]);
-      
-      if (x > 0) stack.push([x - 1, y]);
-      if (x < COLS - 1) stack.push([x + 1, y]);
-      if (y > 0) stack.push([x, y - 1]);
-      if (y < ROWS - 1) stack.push([x, y + 1]);
-    }
-    
-    return group;
-  }
+ // Rellenar vacíos
+ function fillEmpty() {
+   for (let y = 0; y < ROWS; y++) {
+     for (let x = 0; x < COLS; x++) {
+       if (!state.grid[y][x]) {
+         state.grid[y][x] = {
+           kind: 'normal',
+           color: Math.floor(Math.random() * 5),
+           isNew: true
+         };
+       }
+     }
+   }
+ }
 
-  // Buscar cluster de pelotas
-  function findBallCluster(startX, startY) {
-    const visited = new Set();
-    const stack = [[startX, startY]];
-    const cluster = [];
-    
-    while (stack.length > 0) {
-      const [x, y] = stack.pop();
-      const key = `${x},${y}`;
-      
-      if (visited.has(key)) continue;
-      visited.add(key);
-      
-      const cell = state.grid[y]?.[x];
-      if (!cell || cell.kind !== 'ball') continue;
-      
-      cluster.push([x, y]);
-      
-      if (x > 0) stack.push([x - 1, y]);
-      if (x < COLS - 1) stack.push([x + 1, y]);
-      if (y > 0) stack.push([x, y - 1]);
+ // Buscar grupo
+ function findGroup(startX, startY, color) {
+   const visited = new Set();
+   const stack = [[startX, startY]];
+   const group = [];
+   
+   while (stack.length > 0) {
+     const [x, y] = stack.pop();
+     const key = `${x},${y}`;
+     
+     if (visited.has(key)) continue;
+     visited.add(key);
+     
+     const cell = state.grid[y]?.[x];
+     if (!cell || cell.kind !== 'normal' || cell.color !== color) continue;
+     
+     group.push([x, y]);
+     
+     if (x > 0) stack.push([x - 1, y]);
+     if (x < COLS - 1) stack.push([x + 1, y]);
+     if (y > 0) stack.push([x, y - 1]);
+     if (y < ROWS - 1) stack.push([x, y + 1]);
+   }
+   
+   return group;
+ }
+
+ // Buscar cluster de balones
+ function findBallCluster(startX, startY) {
+   const visited = new Set();
+   const stack = [[startX, startY]];
+   const cluster = [];
+   
+   while (stack.length > 0) {
+     const [x, y] = stack.pop();
+     const key = `${x},${y}`;
+     
+     if (visited.has(key)) continue;
+     visited.add(key);
+     
+     const cell = state.grid[y]?.[x];
+     if (!cell || cell.kind !== 'ball') continue;
+     
+     cluster.push([x, y]);
+     
+     if (x > 0) stack.push([x - 1, y]);
+     if (x < COLS - 1) stack.push([x + 1, y]);
+     if (y > 0) stack.push([x, y - 1]);
      if (y < ROWS - 1) stack.push([x, y + 1]);
    }
    
@@ -972,51 +1234,91 @@
    scoreEl.textContent = state.score;
    movesEl.textContent = state.movesLeft;
    targetEl.textContent = state.target;
-   gamesLeftEl.textContent = state.gamesLeft;
+   livesLeftEl.textContent = state.livesLeft;
  }
 
- // NUEVO: Control de límite de partidas
- function checkGamesLimit() {
-   if (state.gamesLeft <= 0) {
-     // Mostrar modal de límite alcanzado
-     voiceSystem.speak('¡No hay más partidas! Vuelve mañana', true);
-     
-     const modal = document.createElement('div');
-     modal.className = 'modal';
-     modal.innerHTML = `
-       <div class="modal-card">
-         <div class="emoji">🛑</div>
-         <h2>¡No hay más partidas!</h2>
-         <p>Has jugado todas tus partidas de hoy.</p>
-         <p>¡Vuelve mañana para jugar más!</p>
-         <button onclick="location.reload()">Entendido</button>
-       </div>
-     `;
-     document.body.appendChild(modal);
-     
-     // Bloquear el juego
-     state.animating = true;
-     return false;
+ // SISTEMA DE VIDAS MEJORADO
+ function checkLocked() {
+   if (state.lockedUntil) {
+     const now = Date.now();
+     if (now < state.lockedUntil) {
+       showLockedModal();
+       return true;
+     } else {
+       // El tiempo expiró, restaurar vidas
+       state.lockedUntil = null;
+       state.livesLeft = MAX_LIVES;
+       saveState();
+       timerInfoEl.style.display = 'none';
+       return false;
+     }
    }
-   return true;
+   return false;
  }
 
- function consumeGame() {
-   state.gamesLeft--;
-   localStorage.setItem('gamesLeft', state.gamesLeft);
+ function consumeLife() {
+   state.livesLeft--;
+   saveState();
    updateUI();
+   
+   if (state.livesLeft <= 0) {
+     // Bloquear por 25 minutos
+     state.lockedUntil = Date.now() + (COOLDOWN_MINUTES * 60 * 1000);
+     saveState();
+     showLockedModal();
+     startTimer();
+   }
  }
 
- // Resetear partidas diariamente
- function checkDailyReset() {
-   const today = new Date().toDateString();
-   const lastReset = localStorage.getItem('lastReset');
+ function showLockedModal() {
+   voiceSystem.speak('¡No hay más vidas! Espera un poquito', true);
    
-   if (lastReset !== today) {
-     state.gamesLeft = MAX_GAMES;
-     localStorage.setItem('gamesLeft', MAX_GAMES);
-     localStorage.setItem('lastReset', today);
-   }
+   const timeLeft = Math.ceil((state.lockedUntil - Date.now()) / 1000 / 60);
+   
+   const modal = document.createElement('div');
+   modal.className = 'modal';
+   modal.innerHTML = `
+     <div class="modal-card">
+       <div class="emoji">⏰</div>
+       <h2>¡Sin vidas!</h2>
+       <p>Tienes que esperar ${timeLeft} minutos</p>
+       <p>¡Ve a jugar con tus juguetes!</p>
+       <button onclick="this.closest('.modal').remove()">OK</button>
+     </div>
+   `;
+   document.body.appendChild(modal);
+ }
+
+ function startTimer() {
+   if (timerInterval) clearInterval(timerInterval);
+   
+   timerInterval = setInterval(() => {
+     if (!state.lockedUntil) {
+       clearInterval(timerInterval);
+       timerInfoEl.style.display = 'none';
+       return;
+     }
+     
+     const now = Date.now();
+     if (now >= state.lockedUntil) {
+       // Tiempo cumplido
+       state.lockedUntil = null;
+       state.livesLeft = MAX_LIVES;
+       saveState();
+       updateUI();
+       timerInfoEl.style.display = 'none';
+       clearInterval(timerInterval);
+       showToast('¡Vidas restauradas! 🎉');
+       voiceSystem.speak('¡Ya puedes jugar otra vez!', true);
+     } else {
+       // Mostrar tiempo restante
+       const seconds = Math.ceil((state.lockedUntil - now) / 1000);
+       const minutes = Math.floor(seconds / 60);
+       const secs = seconds % 60;
+       timerInfoEl.textContent = `⏰ Espera: ${minutes}:${secs.toString().padStart(2, '0')}`;
+       timerInfoEl.style.display = 'block';
+     }
+   }, 1000);
  }
 
  // Verificar estado del juego
@@ -1029,9 +1331,10 @@
  }
 
  function showWin() {
-   soundSystem.playSuccess();
+   soundSystem.playSpecial();
    voiceSystem.speak('¡Ganaste! ¡Eres increíble!');
    
+   // NO consumir vida al ganar
    const modal = document.createElement('div');
    modal.className = 'modal';
    modal.innerHTML = `
@@ -1039,15 +1342,18 @@
        <div class="emoji">🏆</div>
        <h2>¡VICTORIA!</h2>
        <p>¡Conseguiste ${state.score} puntos!</p>
-       <p>Te quedan ${state.gamesLeft} partidas</p>
-       <button onclick="window.startNewGame()">🎮 Jugar de nuevo</button>
+       <p>❤️ Vidas: ${state.livesLeft}</p>
+       <button onclick="window.startNewGame()">🎮 Siguiente nivel</button>
      </div>
    `;
    document.body.appendChild(modal);
  }
 
  function showGameOver() {
-   voiceSystem.speak('¡Se acabó! Inténtalo de nuevo');
+   voiceSystem.speak('¡Se acabó! Una vida menos');
+   
+   // Consumir una vida
+   consumeLife();
    
    const modal = document.createElement('div');
    modal.className = 'modal';
@@ -1057,8 +1363,11 @@
        <h2>¡Se acabó!</h2>
        <p>Conseguiste ${state.score} puntos</p>
        <p>Te faltan ${state.target - state.score} puntos</p>
-       <p>Te quedan ${state.gamesLeft} partidas</p>
-       <button onclick="window.startNewGame()">🎮 Intentar de nuevo</button>
+       <p>❤️ Vidas restantes: ${state.livesLeft}</p>
+       ${state.livesLeft > 0 ? 
+         '<button onclick="window.startNewGame()">🎮 Reintentar</button>' :
+         '<button onclick="this.closest(\'.modal\').remove()">OK</button>'
+       }
      </div>
    `;
    document.body.appendChild(modal);
@@ -1066,22 +1375,16 @@
 
  // Función global para empezar nuevo juego
  window.startNewGame = function() {
-   // Cerrar modal
    const modal = document.querySelector('.modal');
    if (modal) modal.remove();
    
-   // Verificar límite de partidas
-   if (!checkGamesLimit()) return;
+   if (checkLocked()) return;
    
-   // Consumir una partida
-   consumeGame();
-   
-   // Reiniciar
    init();
    showToast('¡Nueva partida! 🎮');
  };
 
- // Inicialización CORREGIDA
+ // Inicialización
  function init() {
    state.level = levelSel.value;
    state.theme = themeSel.value;
@@ -1093,37 +1396,31 @@
    state.score = 0;
    state.animating = false;
    
-   // Generar tablero con algoritmo mejorado
    generateBoard();
-   
    render(false);
    updateUI();
  }
 
- // NUEVO: Generación de tablero mejorada para evitar bugs
+ // Generación de tablero
  function generateBoard() {
    state.grid = [];
    
    for (let y = 0; y < ROWS; y++) {
      state.grid[y] = [];
      for (let x = 0; x < COLS; x++) {
-       // Evitar grupos grandes al inicio
        let color;
        const forbidden = new Set();
        
-       // Revisar izquierda
        if (x >= 2 && 
            state.grid[y][x-1].color === state.grid[y][x-2].color) {
          forbidden.add(state.grid[y][x-1].color);
        }
        
-       // Revisar arriba
        if (y >= 2 && 
            state.grid[y-1][x].color === state.grid[y-2][x].color) {
          forbidden.add(state.grid[y-1][x].color);
        }
        
-       // Elegir color evitando los prohibidos
        const availableColors = [0,1,2,3,4].filter(c => !forbidden.has(c));
        color = availableColors[Math.floor(Math.random() * availableColors.length)];
        
@@ -1134,15 +1431,12 @@
      }
    }
    
-   // Asegurar que hay movimientos posibles
    ensurePlayableMoves();
  }
 
- // Asegurar movimientos jugables
  function ensurePlayableMoves() {
    let hasMove = false;
    
-   // Verificar si hay algún grupo de 2+
    for (let y = 0; y < ROWS && !hasMove; y++) {
      for (let x = 0; x < COLS && !hasMove; x++) {
        const group = findGroup(x, y, state.grid[y][x].color);
@@ -1152,7 +1446,6 @@
      }
    }
    
-   // Si no hay movimientos, crear uno
    if (!hasMove) {
      const x = Math.floor(Math.random() * (COLS - 1));
      const y = Math.floor(Math.random() * ROWS);
@@ -1161,17 +1454,18 @@
    }
  }
 
- // Event listeners CORREGIDOS
+ // Event listeners
  newBtn.addEventListener('click', () => {
-   if (!checkGamesLimit()) return;
+   if (checkLocked()) return;
    
    if (state.score > 0) {
      if (!confirm('¿Empezar nueva partida? Perderás el progreso actual.')) {
        return;
      }
+     // Solo consumir vida si abandonas
+     consumeLife();
    }
    
-   consumeGame();
    init();
    showToast('¡Nueva partida! 🎮');
  });
@@ -1193,26 +1487,20 @@
    showToast(soundSystem.enabled ? 'Sonido ON' : 'Sonido OFF');
  });
 
- // Botón de voz CORREGIDO
  voiceBtn.addEventListener('click', () => {
    const enabled = voiceSystem.toggle();
    voiceBtn.textContent = enabled ? '🗣️' : '🔕';
    showToast(enabled ? 'Voz ON' : 'Voz OFF');
  });
 
- // Iniciar juego
- checkDailyReset();
- checkGamesLimit();
+ // Iniciar
+ loadState();
+ if (state.lockedUntil && Date.now() < state.lockedUntil) {
+   startTimer();
+ }
+ checkLocked();
  init();
  showToast('¡Bienvenido! 🌈');
-
- // Auto-tests mínimos
- (function selfTest() {
-   console.log('🎮 Explota-Color iniciado correctamente');
-   console.log('📊 Partidas restantes:', state.gamesLeft);
-   console.log('🔊 Audio:', soundSystem.audioCtx ? 'OK' : 'No disponible');
-   console.log('🗣️ Voz:', voiceSystem.synth ? 'OK' : 'No disponible');
- })();
 
 })();
 </script>
