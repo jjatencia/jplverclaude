@@ -85,6 +85,16 @@
     font-size: 18px;
   }
 
+  .level-indicator {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #1a1a1a;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-left: 6px;
+  }
+
   .stats {
     display: flex;
     gap: 6px;
@@ -169,14 +179,14 @@
     transform: scale(0.9);
   }
 
-  /* Colores correctos */
+  /* Colores correctos - Solo los primeros 3 para nivel 1 */
   .c0 { background: linear-gradient(135deg, #ff6b6b, #ff4d4f); }
-  .c1 { background: linear-gradient(135deg, #4ecdc4, #3b82f6); }
-  .c2 { background: linear-gradient(135deg, #4ade80, #22c55e); }
-  .c3 { background: linear-gradient(135deg, #ffd93d, #f59e0b); }
+  .c1 { background: linear-gradient(135deg, #ffd93d, #f59e0b); }
+  .c2 { background: linear-gradient(135deg, #4ecdc4, #3b82f6); }
+  .c3 { background: linear-gradient(135deg, #4ade80, #22c55e); }
   .c4 { background: linear-gradient(135deg, #c77dff, #a855f7); }
 
-  /* PELOTA ESPECIAL MEJORADA - Como balón de fútbol girando */
+  /* PELOTA ESPECIAL - Balón de fútbol girando */
   .ball {
     background: conic-gradient(
       from 0deg,
@@ -203,9 +213,9 @@
   }
 
   .ball.c0 { color: #ff4d4f; }
-  .ball.c1 { color: #3b82f6; }
-  .ball.c2 { color: #22c55e; }
-  .ball.c3 { color: #f59e0b; }
+  .ball.c1 { color: #f59e0b; }
+  .ball.c2 { color: #3b82f6; }
+  .ball.c3 { color: #22c55e; }
   .ball.c4 { color: #a855f7; }
 
   .ball::before {
@@ -225,7 +235,7 @@
     50% { transform: scale(1.2); opacity: 1; }
   }
 
-  /* FLECHA ESPECIAL - Para eliminar fila/columna */
+  /* FLECHA ESPECIAL */
   .arrow {
     background: linear-gradient(135deg, #ffd700, #ffed4e) !important;
     animation: arrowPulse 1s ease-in-out infinite;
@@ -286,6 +296,68 @@
     }
   }
 
+  /* ESQUIRLAS PARA MEGA EXPLOSIÓN */
+  .shard {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: shardFly 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  @keyframes shardFly {
+    0% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--dx), var(--dy)) scale(0) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* ONDA EXPANSIVA MEJORADA */
+  .mega-shockwave {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    background: radial-gradient(circle, transparent 30%, rgba(255,255,255,0.8) 35%, transparent 40%, rgba(255,255,255,0.6) 45%, transparent 50%);
+    animation: megaShockwave 1s ease-out forwards;
+  }
+
+  @keyframes megaShockwave {
+    0% {
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(100);
+      opacity: 0;
+    }
+  }
+
+  /* FLASH DE PANTALLA ÉPICO */
+  .mega-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9997;
+    background: radial-gradient(ellipse at center, white, transparent 60%);
+    animation: megaFlash 0.8s ease-out forwards;
+  }
+
+  @keyframes megaFlash {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
   /* Animación de caída */
   .falling {
     animation: fall var(--fall-duration, 0.3s) cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -330,12 +402,6 @@
       transform: scale(0);
       opacity: 0;
     }
-  }
-
-  /* Rebote */
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
   }
 
   /* Eliminación de línea */
@@ -407,6 +473,13 @@
   .modal .emoji {
     font-size: 48px;
     margin-bottom: 12px;
+    animation: celebrateEmoji 1s ease-in-out infinite;
+  }
+
+  @keyframes celebrateEmoji {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(-10deg); }
+    75% { transform: scale(1.1) rotate(10deg); }
   }
 
   .modal button {
@@ -420,7 +493,7 @@
     cursor: pointer;
   }
 
-  /* Footer con contador de vidas */
+  /* Footer */
   footer {
     text-align: center;
     font-size: 11px;
@@ -466,6 +539,12 @@
     }
   }
 
+  /* Rebote */
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
   /* Media queries para iPhone */
   @media screen and (max-width: 390px) {
     .board {
@@ -476,13 +555,6 @@
       font-size: min(6vw, 24px);
     }
   }
-
-  @media screen and (max-height: 700px) {
-    header { padding: 6px; }
-    .header-row { margin-bottom: 4px; }
-    .controls { gap: 3px; }
-    .board { gap: 4px; padding: 8px; }
-  }
 </style>
 </head>
 <body>
@@ -491,6 +563,7 @@
       <div class="title">
         <span class="logo">🌈</span>
         <span>Explota-Color</span>
+        <span class="level-indicator" id="levelIndicator">Nivel 1</span>
       </div>
       <div class="stats">
         <div class="pill">🎯 <span id="target">0</span></div>
@@ -499,17 +572,11 @@
       </div>
     </div>
     <div class="controls">
-      <select id="levelSel">
-        <option value="baby">👶 Bebé</option>
-        <option value="easy">🐣 Fácil</option>
-        <option value="normal" selected>🦄 Normal</option>
-      </select>
       <select id="themeSel">
         <option value="frutas">🍓 Frutas</option>
         <option value="animales">🐵 Animales</option>
         <option value="caras">😊 Caras</option>
       </select>
-      <button id="newBtn">✨ Nuevo</button>
       <button id="soundBtn">🔊</button>
       <button id="voiceBtn">🗣️</button>
     </div>
@@ -533,36 +600,58 @@
   const COLS = 6;
   const ROWS = 8;
   const MAX_LIVES = 5;
-  const COOLDOWN_MINUTES = 25; // 25 minutos de espera
+  const COOLDOWN_MINUTES = 25;
+
+  // SISTEMA DE NIVELES PROGRESIVOS
+  const GAME_LEVELS = [
+    {
+      level: 1,
+      name: "Nivel 1",
+      colors: 3, // Solo rojo, amarillo y azul
+      target: 1500,
+      moves: 35,
+      description: "🌟 ¡Empezamos fácil!"
+    },
+    {
+      level: 2,
+      name: "Nivel 2",
+      colors: 4, // Añadimos verde
+      target: 2500,
+      moves: 30,
+      description: "🌿 ¡Aparece el verde!"
+    },
+    {
+      level: 3,
+      name: "Nivel 3",
+      colors: 5, // Añadimos morado
+      target: 3500,
+      moves: 25,
+      description: "💜 ¡Todos los colores!"
+    }
+  ];
 
   const EMOJI_THEMES = {
     frutas: [
-      { emoji: '🍓', name: 'fresa' },
-      { emoji: '🫐', name: 'arándano' },
-      { emoji: '🥝', name: 'kiwi' },
-      { emoji: '🍌', name: 'plátano' },
-      { emoji: '🍇', name: 'uvas' }
+      { emoji: '🍓', name: 'fresa' },     // Rojo
+      { emoji: '🍌', name: 'plátano' },   // Amarillo  
+      { emoji: '🫐', name: 'arándano' },  // Azul
+      { emoji: '🥝', name: 'kiwi' },      // Verde
+      { emoji: '🍇', name: 'uvas' }       // Morado
     ],
     animales: [
-      { emoji: '🐵', name: 'mono' },
-      { emoji: '🐸', name: 'rana' },
-      { emoji: '🦁', name: 'león' },
-      { emoji: '🐥', name: 'pollito' },
-      { emoji: '🐷', name: 'cerdito' }
+      { emoji: '🦀', name: 'cangrejo' },  // Rojo
+      { emoji: '🐥', name: 'pollito' },   // Amarillo
+      { emoji: '🐬', name: 'delfín' },    // Azul
+      { emoji: '🐸', name: 'rana' },      // Verde
+      { emoji: '🦄', name: 'unicornio' }  // Morado
     ],
     caras: [
-      { emoji: '😊', name: 'feliz' },
-      { emoji: '😎', name: 'cool' },
-      { emoji: '🤗', name: 'abrazo' },
-      { emoji: '😋', name: 'rico' },
-      { emoji: '🥳', name: 'fiesta' }
+      { emoji: '😡', name: 'enfadado' },  // Rojo
+      { emoji: '😊', name: 'feliz' },     // Amarillo
+      { emoji: '😢', name: 'triste' },    // Azul
+      { emoji: '🤢', name: 'mareado' },   // Verde
+      { emoji: '😈', name: 'diablillo' }  // Morado
     ]
-  };
-
-  const LEVELS = {
-    baby: { target: 500, moves: 50 },
-    easy: { target: 3000, moves: 35 },
-    normal: { target: 4000, moves: 25 }
   };
 
   // Sistema de sonido
@@ -608,6 +697,11 @@
         setTimeout(() => this.play(f, 0.1), i * 40);
       });
     }
+    playLevelUp() {
+      [523, 587, 659, 784, 880, 1047].forEach((f, i) => {
+        setTimeout(() => this.play(f, 0.2), i * 80);
+      });
+    }
     playError() { this.play(200, 0.3); }
   }
 
@@ -649,13 +743,14 @@
   let state = {
     grid: [],
     score: 0,
-    movesLeft: 25,
-    target: 3000,
-    level: 'normal',
+    movesLeft: 35,
+    target: 1500,
+    currentLevel: 1,
     theme: 'frutas',
     animating: false,
     livesLeft: MAX_LIVES,
-    lockedUntil: null
+    lockedUntil: null,
+    totalScore: 0 // Puntuación acumulada entre niveles
   };
 
   // Cargar estado guardado
@@ -665,13 +760,17 @@
       const data = JSON.parse(saved);
       state.livesLeft = data.livesLeft || MAX_LIVES;
       state.lockedUntil = data.lockedUntil || null;
+      state.currentLevel = data.currentLevel || 1;
+      state.totalScore = data.totalScore || 0;
     }
   }
 
   function saveState() {
     localStorage.setItem('gameState', JSON.stringify({
       livesLeft: state.livesLeft,
-      lockedUntil: state.lockedUntil
+      lockedUntil: state.lockedUntil,
+      currentLevel: state.currentLevel,
+      totalScore: state.totalScore
     }));
   }
 
@@ -687,11 +786,16 @@
   const targetEl = document.getElementById('target');
   const livesLeftEl = document.getElementById('livesLeft');
   const timerInfoEl = document.getElementById('timerInfo');
-  const newBtn = document.getElementById('newBtn');
-  const levelSel = document.getElementById('levelSel');
+  const levelIndicatorEl = document.getElementById('levelIndicator');
   const themeSel = document.getElementById('themeSel');
   const soundBtn = document.getElementById('soundBtn');
   const voiceBtn = document.getElementById('voiceBtn');
+
+  // Obtener configuración del nivel actual
+  function getCurrentLevelConfig() {
+    const index = Math.min(state.currentLevel - 1, GAME_LEVELS.length - 1);
+    return GAME_LEVELS[index];
+  }
 
   // Renderizado
   function render(animateChanges = false) {
@@ -743,7 +847,7 @@
     boardEl.appendChild(fragment);
   }
 
-  // NUEVO: Dibujar rayos conectores
+  // Dibujar rayos conectores
   function drawLightning(fromX, fromY, targets, color) {
     const fromTile = boardEl.querySelector(`[data-x="${fromX}"][data-y="${fromY}"]`);
     if (!fromTile) return;
@@ -752,109 +856,161 @@
     const fromCenterX = fromRect.left + fromRect.width / 2;
     const fromCenterY = fromRect.top + fromRect.height / 2;
     
-    const colors = ['#ff4d4f', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
+    const colors = ['#ff4d4f', '#f59e0b', '#3b82f6', '#22c55e', '#a855f7'];
     const strokeColor = colors[color];
     
     targets.forEach(([toX, toY]) => {
       const toTile = boardEl.querySelector(`[data-x="${toX}"][data-y="${toY}"]`);
-      if (!toTile) return;
-      
-      const toRect = toTile.getBoundingClientRect();
-      const toCenterX = toRect.left + toRect.width / 2;
-      const toCenterY = toRect.top + toRect.height / 2;
-      
-      // Crear SVG para el rayo
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.classList.add('lightning');
-      svg.style.position = 'fixed';
-      svg.style.left = '0';
-      svg.style.top = '0';
-      svg.style.width = '100%';
-      svg.style.height = '100%';
-      svg.style.color = strokeColor;
-      
-      // Crear path zigzag para el rayo
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      
-      // Calcular puntos intermedios para zigzag
-      const midX = (fromCenterX + toCenterX) / 2;
-      const midY = (fromCenterY + toCenterY) / 2;
-      const offset = 15;
-      const zigX1 = midX + (Math.random() - 0.5) * offset;
-      const zigY1 = midY + (Math.random() - 0.5) * offset;
-      
-      path.setAttribute('d', `M ${fromCenterX} ${fromCenterY} L ${zigX1} ${zigY1} L ${toCenterX} ${toCenterY}`);
-      
-      svg.appendChild(path);
-      document.body.appendChild(svg);
-      
-      setTimeout(() => svg.remove(), 500);
-    });
-  }
+     if (!toTile) return;
+     
+     const toRect = toTile.getBoundingClientRect();
+     const toCenterX = toRect.left + toRect.width / 2;
+     const toCenterY = toRect.top + toRect.height / 2;
+     
+     // Crear SVG para el rayo
+     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+     svg.classList.add('lightning');
+     svg.style.position = 'fixed';
+     svg.style.left = '0';
+     svg.style.top = '0';
+     svg.style.width = '100%';
+     svg.style.height = '100%';
+     svg.style.color = strokeColor;
+     
+     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+     
+     // Calcular puntos intermedios para zigzag
+     const midX = (fromCenterX + toCenterX) / 2;
+     const midY = (fromCenterY + toCenterY) / 2;
+     const offset = 15;
+     const zigX1 = midX + (Math.random() - 0.5) * offset;
+     const zigY1 = midY + (Math.random() - 0.5) * offset;
+     
+     path.setAttribute('d', `M ${fromCenterX} ${fromCenterY} L ${zigX1} ${zigY1} L ${toCenterX} ${toCenterY}`);
+     
+     svg.appendChild(path);
+     document.body.appendChild(svg);
+     
+     setTimeout(() => svg.remove(), 500);
+   });
+ }
 
-  // Click en ficha
-  boardEl.addEventListener('click', (e) => {
-    if (state.animating) return;
-    if (checkLocked()) return;
-    
-    const tile = e.target.closest('.tile');
-    if (!tile) return;
-    
-    const x = parseInt(tile.dataset.x);
-    const y = parseInt(tile.dataset.y);
-    const cell = state.grid[y]?.[x];
-    
-    if (!cell) return;
-    
-    if (cell.kind === 'ball') {
-      handleBallClick(x, y, cell.color);
-    } else if (cell.kind === 'arrow') {
-      handleArrowClick(x, y, cell.direction);
-    } else {
-      handleNormalClick(x, y, cell.color);
-    }
-  });
+ // NUEVA FUNCIÓN: Mega explosión con esquirlas
+ function createMegaExplosion() {
+   // Crear onda expansiva
+   const shockwave = document.createElement('div');
+   shockwave.className = 'mega-shockwave';
+   document.body.appendChild(shockwave);
+   setTimeout(() => shockwave.remove(), 1000);
+   
+   // Crear flash épico
+   const flash = document.createElement('div');
+   flash.className = 'mega-flash';
+   document.body.appendChild(flash);
+   setTimeout(() => flash.remove(), 800);
+   
+   // Crear esquirlas por toda la pantalla
+   const colors = ['#ff4d4f', '#f59e0b', '#3b82f6', '#22c55e', '#a855f7'];
+   const boardRect = boardEl.getBoundingClientRect();
+   const centerX = boardRect.left + boardRect.width / 2;
+   const centerY = boardRect.top + boardRect.height / 2;
+   
+   // Crear muchas esquirlas
+   for (let i = 0; i < 50; i++) {
+     setTimeout(() => {
+       const shard = document.createElement('div');
+       shard.className = 'shard';
+       shard.style.left = centerX + 'px';
+       shard.style.top = centerY + 'px';
+       
+       // Color aleatorio
+       const color = colors[Math.floor(Math.random() * colors.length)];
+       shard.style.background = `linear-gradient(45deg, ${color}, white)`;
+       shard.style.boxShadow = `0 0 20px ${color}`;
+       
+       // Dirección aleatoria en 360 grados
+       const angle = (Math.PI * 2 * i) / 50 + (Math.random() - 0.5) * 0.5;
+       const distance = 200 + Math.random() * 300;
+       const dx = Math.cos(angle) * distance;
+       const dy = Math.sin(angle) * distance;
+       
+       shard.style.setProperty('--dx', dx + 'px');
+       shard.style.setProperty('--dy', dy + 'px');
+       
+       document.body.appendChild(shard);
+       setTimeout(() => shard.remove(), 1200);
+     }, i * 10);
+   }
+   
+   // Vibración épica
+   if (navigator.vibrate) {
+     navigator.vibrate([100, 50, 100, 50, 200]);
+   }
+ }
 
-  // Manejar click normal
-  function handleNormalClick(x, y, color) {
-    const group = findGroup(x, y, color);
-    
-    if (group.length < 2) {
-      const tile = boardEl.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-      if (tile) {
-        tile.style.animation = 'bounce 0.3s';
-        setTimeout(() => tile.style.animation = '', 300);
-      }
-      soundSystem.playError();
-      return;
-    }
-    
-    state.animating = true;
-    spendMove();
-    
-    // GRUPO DE 5+ : Crear balón
-    if (group.length >= 5) {
-      animateExplosion(group.filter(([gx, gy]) => !(gx === x && gy === y)));
-      
-      setTimeout(() => {
-        for (const [gx, gy] of group) {
-          if (!(gx === x && gy === y)) {
-            spawnParticles(gx, gy, color);
-            state.grid[gy][gx] = null;
-          }
-        }
-        
-        state.grid[y][x] = { kind: 'ball', color: color };
-        
-        soundSystem.playSpecial();
-        voiceSystem.speak('¡Balón mágico!');
-        showToast('⚽ ¡Balón mágico!');
-        
-        applyGravity();
-        fillEmpty();
-        render(true);
-        
-        setTimeout(() => {
+ // Click en ficha
+ boardEl.addEventListener('click', (e) => {
+   if (state.animating) return;
+   if (checkLocked()) return;
+   
+   const tile = e.target.closest('.tile');
+   if (!tile) return;
+   
+   const x = parseInt(tile.dataset.x);
+   const y = parseInt(tile.dataset.y);
+   const cell = state.grid[y]?.[x];
+   
+   if (!cell) return;
+   
+   if (cell.kind === 'ball') {
+     handleBallClick(x, y, cell.color);
+   } else if (cell.kind === 'arrow') {
+     handleArrowClick(x, y, cell.direction);
+   } else {
+     handleNormalClick(x, y, cell.color);
+   }
+ });
+
+ // Manejar click normal
+ function handleNormalClick(x, y, color) {
+   const group = findGroup(x, y, color);
+   
+   if (group.length < 2) {
+     const tile = boardEl.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+     if (tile) {
+       tile.style.animation = 'bounce 0.3s';
+       setTimeout(() => tile.style.animation = '', 300);
+     }
+     soundSystem.playError();
+     return;
+   }
+   
+   state.animating = true;
+   spendMove();
+   
+   // GRUPO DE 5+: Crear balón
+   if (group.length >= 5) {
+     animateExplosion(group.filter(([gx, gy]) => !(gx === x && gy === y)));
+     
+     setTimeout(() => {
+       for (const [gx, gy] of group) {
+         if (!(gx === x && gy === y)) {
+           spawnParticles(gx, gy, color);
+           state.grid[gy][gx] = null;
+         }
+       }
+       
+       state.grid[y][x] = { kind: 'ball', color: color };
+       
+       soundSystem.playSpecial();
+       voiceSystem.speak('¡Balón mágico!');
+       showToast('⚽ ¡Balón mágico!');
+       
+       applyGravity();
+       fillEmpty();
+       render(true);
+       
+       setTimeout(() => {
          state.animating = false;
          checkGameState();
        }, 600);
@@ -876,7 +1032,6 @@
          }
        }
        
-       // Crear flecha con dirección aleatoria
        const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
        state.grid[y][x] = { kind: 'arrow', direction: direction, color: color };
        
@@ -926,7 +1081,7 @@
    addScore(group.length * 15);
  }
 
- // NUEVO: Manejar click en flecha
+ // Manejar click en flecha
  function handleArrowClick(x, y, direction) {
    state.animating = true;
    spendMove();
@@ -934,7 +1089,6 @@
    const targets = [];
    
    if (direction === 'horizontal') {
-     // Eliminar toda la fila
      for (let px = 0; px < COLS; px++) {
        if (state.grid[y][px] && state.grid[y][px].kind === 'normal') {
          targets.push([px, y]);
@@ -943,7 +1097,6 @@
      voiceSystem.speak('¡Explosión horizontal!');
      showToast('➡️ ¡Fila eliminada!');
    } else {
-     // Eliminar toda la columna
      for (let py = 0; py < ROWS; py++) {
        if (state.grid[py][x] && state.grid[py][x].kind === 'normal') {
          targets.push([x, py]);
@@ -953,7 +1106,6 @@
      showToast('⬆️ ¡Columna eliminada!');
    }
    
-   // Animar eliminación de línea
    targets.forEach(([tx, ty]) => {
      const tile = boardEl.querySelector(`[data-x="${tx}"][data-y="${ty}"]`);
      if (tile) {
@@ -962,10 +1114,8 @@
    });
    
    setTimeout(() => {
-     // Eliminar la flecha
      state.grid[y][x] = null;
      
-     // Eliminar objetivos
      for (const [tx, ty] of targets) {
        if (state.grid[ty] && state.grid[ty][tx]) {
          spawnParticles(tx, ty, state.grid[ty][tx].color);
@@ -987,7 +1137,7 @@
    addScore(targets.length * 30);
  }
 
- // Manejar click en balón CON RAYOS
+ // Manejar click en balón CON MEGA EXPLOSIÓN
  function handleBallClick(x, y, color) {
    state.animating = true;
    spendMove();
@@ -995,10 +1145,15 @@
    const ballCluster = findBallCluster(x, y);
    
    if (ballCluster.length >= 2) {
-     // Limpieza total
-     voiceSystem.speak('¡Explosión total!');
+     // MEGA EXPLOSIÓN ÉPICA
+     voiceSystem.speak('¡Mega explosión!');
+     showToast('💥 ¡¡¡MEGA EXPLOSIÓN!!! 💥');
+     
+     // Crear efectos especiales
+     createMegaExplosion();
      
      setTimeout(() => {
+       // Eliminar todo
        for (let py = 0; py < ROWS; py++) {
          for (let px = 0; px < COLS; px++) {
            if (state.grid[py][px]) {
@@ -1021,11 +1176,11 @@
          state.animating = false;
          checkGameState();
        }, 600);
-     }, 400);
+     }, 600);
      
-     addScore(500);
+     addScore(800);
    } else {
-     // Eliminar todas las fichas del mismo color CON RAYOS
+     // Eliminar color con rayos
      const targets = [];
      for (let py = 0; py < ROWS; py++) {
        for (let px = 0; px < COLS; px++) {
@@ -1036,15 +1191,13 @@
        }
      }
      
-     // DIBUJAR RAYOS
      drawLightning(x, y, targets, color);
      
-     // Animar explosión con delay
      setTimeout(() => {
        animateExplosion(targets);
        
        setTimeout(() => {
-         state.grid[y][x] = null; // Eliminar el balón
+         state.grid[y][x] = null;
          for (const [tx, ty] of targets) {
            spawnParticles(tx, ty, color);
            state.grid[ty][tx] = null;
@@ -1101,14 +1254,17 @@
    }
  }
 
- // Rellenar vacíos
+ // Rellenar vacíos con colores según el nivel
  function fillEmpty() {
+   const levelConfig = getCurrentLevelConfig();
+   const maxColors = levelConfig.colors;
+   
    for (let y = 0; y < ROWS; y++) {
      for (let x = 0; x < COLS; x++) {
        if (!state.grid[y][x]) {
          state.grid[y][x] = {
            kind: 'normal',
-           color: Math.floor(Math.random() * 5),
+           color: Math.floor(Math.random() * maxColors),
            isNew: true
          };
        }
@@ -1186,7 +1342,7 @@
    if (!tile) return;
    
    const rect = tile.getBoundingClientRect();
-   const colors = ['#ff4d4f', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
+   const colors = ['#ff4d4f', '#f59e0b', '#3b82f6', '#22c55e', '#a855f7'];
    
    for (let i = 0; i < 6; i++) {
      const particle = document.createElement('div');
@@ -1235,9 +1391,10 @@
    movesEl.textContent = state.movesLeft;
    targetEl.textContent = state.target;
    livesLeftEl.textContent = state.livesLeft;
+   levelIndicatorEl.textContent = `Nivel ${state.currentLevel}`;
  }
 
- // SISTEMA DE VIDAS MEJORADO
+ // Sistema de vidas
  function checkLocked() {
    if (state.lockedUntil) {
      const now = Date.now();
@@ -1245,7 +1402,6 @@
        showLockedModal();
        return true;
      } else {
-       // El tiempo expiró, restaurar vidas
        state.lockedUntil = null;
        state.livesLeft = MAX_LIVES;
        saveState();
@@ -1262,7 +1418,6 @@
    updateUI();
    
    if (state.livesLeft <= 0) {
-     // Bloquear por 25 minutos
      state.lockedUntil = Date.now() + (COOLDOWN_MINUTES * 60 * 1000);
      saveState();
      showLockedModal();
@@ -1301,7 +1456,6 @@
      
      const now = Date.now();
      if (now >= state.lockedUntil) {
-       // Tiempo cumplido
        state.lockedUntil = null;
        state.livesLeft = MAX_LIVES;
        saveState();
@@ -1311,7 +1465,6 @@
        showToast('¡Vidas restauradas! 🎉');
        voiceSystem.speak('¡Ya puedes jugar otra vez!', true);
      } else {
-       // Mostrar tiempo restante
        const seconds = Math.ceil((state.lockedUntil - now) / 1000);
        const minutes = Math.floor(seconds / 60);
        const secs = seconds % 60;
@@ -1324,35 +1477,60 @@
  // Verificar estado del juego
  function checkGameState() {
    if (state.score >= state.target) {
-     showWin();
+     levelComplete();
    } else if (state.movesLeft === 0) {
      showGameOver();
    }
  }
 
- function showWin() {
-   soundSystem.playSpecial();
-   voiceSystem.speak('¡Ganaste! ¡Eres increíble!');
+ // NUEVO: Completar nivel
+ function levelComplete() {
+   soundSystem.playLevelUp();
+   state.totalScore += state.score;
    
-   // NO consumir vida al ganar
-   const modal = document.createElement('div');
-   modal.className = 'modal';
-   modal.innerHTML = `
-     <div class="modal-card">
-       <div class="emoji">🏆</div>
-       <h2>¡VICTORIA!</h2>
-       <p>¡Conseguiste ${state.score} puntos!</p>
-       <p>❤️ Vidas: ${state.livesLeft}</p>
-       <button onclick="window.startNewGame()">🎮 Siguiente nivel</button>
-     </div>
-   `;
-   document.body.appendChild(modal);
+   if (state.currentLevel < GAME_LEVELS.length) {
+     // Pasar al siguiente nivel
+     state.currentLevel++;
+     saveState();
+     
+     const nextLevel = getCurrentLevelConfig();
+     voiceSystem.speak(`¡Nivel ${state.currentLevel}! ${nextLevel.description}`, true);
+     
+     const modal = document.createElement('div');
+     modal.className = 'modal';
+     modal.innerHTML = `
+       <div class="modal-card">
+         <div class="emoji">🎉</div>
+         <h2>¡Nivel Completado!</h2>
+         <p>¡Conseguiste ${state.score} puntos!</p>
+         <p><strong>${nextLevel.description}</strong></p>
+         <p>Siguiente: ${nextLevel.name}</p>
+         <button onclick="window.nextLevel()">🎮 Siguiente Nivel</button>
+       </div>
+     `;
+     document.body.appendChild(modal);
+   } else {
+     // Juego completado
+     voiceSystem.speak('¡Felicidades! ¡Completaste todos los niveles!', true);
+     
+     const modal = document.createElement('div');
+     modal.className = 'modal';
+     modal.innerHTML = `
+       <div class="modal-card">
+         <div class="emoji">🏆</div>
+         <h2>¡JUEGO COMPLETADO!</h2>
+         <p>¡Eres un campeón!</p>
+         <p>Puntuación total: ${state.totalScore} ⭐</p>
+         <button onclick="window.resetGame()">🎮 Jugar de nuevo</button>
+       </div>
+     `;
+     document.body.appendChild(modal);
+   }
  }
 
  function showGameOver() {
    voiceSystem.speak('¡Se acabó! Una vida menos');
    
-   // Consumir una vida
    consumeLife();
    
    const modal = document.createElement('div');
@@ -1373,7 +1551,27 @@
    document.body.appendChild(modal);
  }
 
- // Función global para empezar nuevo juego
+ // Funciones globales
+ window.nextLevel = function() {
+   const modal = document.querySelector('.modal');
+   if (modal) modal.remove();
+   
+   init();
+   showToast(`¡Nivel ${state.currentLevel}! 🚀`);
+ };
+
+ window.resetGame = function() {
+   const modal = document.querySelector('.modal');
+   if (modal) modal.remove();
+   
+   state.currentLevel = 1;
+   state.totalScore = 0;
+   saveState();
+   
+   init();
+   showToast('¡Nueva aventura! 🎮');
+ };
+
  window.startNewGame = function() {
    const modal = document.querySelector('.modal');
    if (modal) modal.remove();
@@ -1381,18 +1579,18 @@
    if (checkLocked()) return;
    
    init();
-   showToast('¡Nueva partida! 🎮');
+   showToast('¡Intentando de nuevo! 🎮');
  };
 
  // Inicialización
  function init() {
-   state.level = levelSel.value;
+   const levelConfig = getCurrentLevelConfig();
+   
    state.theme = themeSel.value;
    currentTheme = EMOJI_THEMES[state.theme];
    
-   const config = LEVELS[state.level];
-   state.target = config.target;
-   state.movesLeft = config.moves;
+   state.target = levelConfig.target;
+   state.movesLeft = levelConfig.moves;
    state.score = 0;
    state.animating = false;
    
@@ -1401,8 +1599,11 @@
    updateUI();
  }
 
- // Generación de tablero
+ // Generación de tablero con colores según nivel
  function generateBoard() {
+   const levelConfig = getCurrentLevelConfig();
+   const maxColors = levelConfig.colors;
+   
    state.grid = [];
    
    for (let y = 0; y < ROWS; y++) {
@@ -1417,11 +1618,17 @@
        }
        
        if (y >= 2 && 
+           state.grid[y-1] && state.grid[y-1][x] &&
+           state.grid[y-2] && state.grid[y-2][x] &&
            state.grid[y-1][x].color === state.grid[y-2][x].color) {
          forbidden.add(state.grid[y-1][x].color);
        }
        
-       const availableColors = [0,1,2,3,4].filter(c => !forbidden.has(c));
+       const availableColors = [];
+       for (let c = 0; c < maxColors; c++) {
+         if (!forbidden.has(c)) availableColors.push(c);
+       }
+       
        color = availableColors[Math.floor(Math.random() * availableColors.length)];
        
        state.grid[y][x] = {
@@ -1455,26 +1662,6 @@
  }
 
  // Event listeners
- newBtn.addEventListener('click', () => {
-   if (checkLocked()) return;
-   
-   if (state.score > 0) {
-     if (!confirm('¿Empezar nueva partida? Perderás el progreso actual.')) {
-       return;
-     }
-     // Solo consumir vida si abandonas
-     consumeLife();
-   }
-   
-   init();
-   showToast('¡Nueva partida! 🎮');
- });
-
- levelSel.addEventListener('change', () => {
-   init();
-   showToast(`Nivel: ${levelSel.options[levelSel.selectedIndex].text}`);
- });
-
  themeSel.addEventListener('change', () => {
    currentTheme = EMOJI_THEMES[themeSel.value];
    render(false);
@@ -1500,7 +1687,10 @@
  }
  checkLocked();
  init();
- showToast('¡Bienvenido! 🌈');
+ 
+ // Mensaje de bienvenida según el nivel
+ const levelConfig = getCurrentLevelConfig();
+ showToast(`${levelConfig.description}`);
 
 })();
 </script>
