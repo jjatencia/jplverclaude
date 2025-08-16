@@ -992,6 +992,54 @@
     boardEl.appendChild(fragment);
   }
 
+  // Dibujar rayos conectores
+  function drawLightning(fromX, fromY, targets, color) {
+    const fromTile = boardEl.querySelector(`[data-x="${fromX}"][data-y="${fromY}"]`);
+    if (!fromTile) return;
+    
+    const fromRect = fromTile.getBoundingClientRect();
+    const fromCenterX = fromRect.left + fromRect.width / 2;
+    const fromCenterY = fromRect.top + fromRect.height / 2;
+    
+    const colors = ['#ff4d4f', '#f59e0b', '#3b82f6', '#22c55e', '#a855f7'];
+    const strokeColor = colors[color];
+    
+    targets.forEach(([toX, toY]) => {
+      const toTile = boardEl.querySelector(`[data-x="${toX}"][data-y="${toY}"]`);
+      if (!toTile) return;
+      
+      const toRect = toTile.getBoundingClientRect();
+      const toCenterX = toRect.left + toRect.width / 2;
+      const toCenterY = toRect.top + toRect.height / 2;
+      
+      // Crear SVG para el rayo
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('lightning');
+      svg.style.position = 'fixed';
+      svg.style.left = '0';
+      svg.style.top = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.color = strokeColor;
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      
+      // Calcular puntos intermedios para zigzag
+      const midX = (fromCenterX + toCenterX) / 2;
+      const midY = (fromCenterY + toCenterY) / 2;
+      const offset = 15;
+      const zigX1 = midX + (Math.random() - 0.5) * offset;
+      const zigY1 = midY + (Math.random() - 0.5) * offset;
+      
+      path.setAttribute('d', `M ${fromCenterX} ${fromCenterY} L ${zigX1} ${zigY1} L ${toCenterX} ${toCenterY}`);
+      
+      svg.appendChild(path);
+      document.body.appendChild(svg);
+      
+      setTimeout(() => svg.remove(), 500);
+    });
+  }
+
   // Mega explosión con esquirlas
   function createMegaExplosion() {
     // Crear onda expansiva
@@ -1268,7 +1316,7 @@
       
       addScore(800);
     } else {
-      // Eliminar color
+      // Eliminar color con rayos ⚡
       const targets = [];
       for (let py = 0; py < ROWS; py++) {
         for (let px = 0; px < COLS; px++) {
@@ -1278,6 +1326,9 @@
           }
         }
       }
+      
+      // RAYOS ÉPICOS desde el balón hacia todas las fichas del mismo color
+      drawLightning(x, y, targets, color);
       
       setTimeout(() => {
         animateExplosion(targets);
